@@ -82,6 +82,8 @@ public class DGenerateKeyPair extends JEscDialog {
     private JComboBox<String> jcbECCurveSet;
     private JLabel jlECCurve;
     private JComboBox<String> jcbECCurve;
+    private JLabel jlECNamedCurve;
+    private JRadioButton jrbECNamedCurve;
 
     private JButton jbOK;
     private JButton jbCancel;
@@ -92,6 +94,7 @@ public class DGenerateKeyPair extends JEscDialog {
     private final String keyPairCurveSet;
     private final String keyPairCurveName;
     private final KeyStoreType keyStoreType;
+    private final boolean namedCurve;
 
     private boolean success = false;
 
@@ -105,9 +108,10 @@ public class DGenerateKeyPair extends JEscDialog {
      * @param keyPairSizeDSA   Initial key pair size
      * @param keyPairCurveSet  Initially selected EC curve set
      * @param keyPairCurveName Initially selected named EC curve
+     * @param namedCurve       Whether a named curve or not shall be used
      */
     public DGenerateKeyPair(JFrame parent, KeyStoreType keyStoreType, KeyPairType keyPairType, int keyPairSizeRSA,
-                            int keyPairSizeDSA, String keyPairCurveSet, String keyPairCurveName) {
+                            int keyPairSizeDSA, String keyPairCurveSet, String keyPairCurveName, boolean namedCurve) {
 
         super(parent, res.getString("DGenerateKeyPair.Title"), Dialog.ModalityType.DOCUMENT_MODAL);
 
@@ -117,6 +121,7 @@ public class DGenerateKeyPair extends JEscDialog {
         this.keyPairCurveSet = keyPairCurveSet;
         this.keyPairCurveName = keyPairCurveName;
         this.keyStoreType = keyStoreType;
+        this.namedCurve = namedCurve;
 
         initComponents();
     }
@@ -172,6 +177,14 @@ public class DGenerateKeyPair extends JEscDialog {
         jcbECCurve.setPrototypeDisplayValue(EccUtil.findLongestCurveName());
         jcbECCurve.setToolTipText(res.getString("DGenerateKeyPair.jcbECCurve.tooltip"));
 
+
+        jlECNamedCurve = new JLabel(res.getString("DGenerateKeyPair.jlECNamedCurve.text"));
+        jlECNamedCurve.setToolTipText(res.getString("DGenerateKeyPair.jlECNamedCurve.tooltip"));
+
+        jrbECNamedCurve = new JRadioButton("Named curve", namedCurve);
+        jrbECNamedCurve.setToolTipText(res.getString("DGenerateKeyPair.jrbNamedCurve.tooltip"));
+        PlatformUtil.setMnemonic(jrbECNamedCurve, res.getString("DGenerateKeyPair.jrbNamedCurve.mnemonic").charAt(0));
+
         jbCancel = new JButton(res.getString("DGenerateKeyPair.jbCancel.text"));
         jbCancel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                 .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CANCEL_KEY);
@@ -212,6 +225,8 @@ public class DGenerateKeyPair extends JEscDialog {
         pane.add(jcbECCurveSet, "growx, wrap");
         pane.add(jlECCurve, "skip");
         pane.add(jcbECCurve, "growx, wrap para");
+        pane.add(jlECNamedCurve, "skip");
+        pane.add(jrbECNamedCurve, "growx, wrap");
         pane.add(new JSeparator(), "spanx, growx, wrap");
         pane.add(jpButtons, "right, spanx");
 
@@ -278,6 +293,7 @@ public class DGenerateKeyPair extends JEscDialog {
         jcbECCurve.setEnabled(isEcType);
         jlECCurveSet.setEnabled(isEcType);
         jcbECCurveSet.setEnabled(isEcType);
+        jrbECNamedCurve.setEnabled(isEcType);
     }
 
     private void loadKeySizes(int keyPairSizeRSA, int keyPairSizeDSA) {
@@ -403,6 +419,15 @@ public class DGenerateKeyPair extends JEscDialog {
     }
 
     /**
+     * Get the name of the selected curve.
+     *
+     * @return The curve name
+     */
+    public boolean isNamedCurve() {
+        return jrbECNamedCurve.isSelected();
+    }
+
+    /**
      * Have the parameters been entered correctly?
      *
      * @return True if they have, false otherwise
@@ -428,7 +453,7 @@ public class DGenerateKeyPair extends JEscDialog {
     // for quick UI testing
     public static void main(String[] args) throws Exception {
         DGenerateKeyPair dialog = new DGenerateKeyPair(new JFrame(), KeyStoreType.JKS, KeyPairType.RSA, 2048, 1024, "",
-                                                       "");
+                                                       "", true);
         DialogViewer.run(dialog);
     }
 }

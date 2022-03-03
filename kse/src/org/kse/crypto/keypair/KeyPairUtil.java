@@ -42,16 +42,13 @@ import java.security.Signature;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.DSAPrivateKeySpec;
-import java.security.spec.DSAPublicKeySpec;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
-import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.*;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.kse.crypto.CryptoException;
 import org.kse.crypto.KeyInfo;
@@ -107,9 +104,8 @@ public final class KeyPairUtil {
                     MessageFormat.format(res.getString("NoGenerateKeypair.exception.message"), keyPairType), ex);
         }
     }
-
     /**
-     * Generate a EC key pair.
+     * Generate a EC key pair using a named curve.
      *
      * @param curveName Name of the ECC curve
      * @param provider  A JCE provider.
@@ -117,18 +113,36 @@ public final class KeyPairUtil {
      * @throws CryptoException If there was a problem generating the key pair
      */
     public static KeyPair generateECKeyPair(String curveName, Provider provider) throws CryptoException {
+        return generateECKeyPair(curveName, true, provider);
+    }
+    /**
+     * Generate a EC key pair.
+     *
+     * @param curveName Name of the ECC curve
+     * @param namedCurve whether to use a named curve for the key pair or a fully specified one.
+     * @param provider  A JCE provider.
+     * @return A key pair
+     * @throws CryptoException If there was a problem generating the key pair
+     */
+    public static KeyPair generateECKeyPair(String curveName, boolean namedCurve, Provider provider) throws CryptoException {
         try {
             // Get a key pair generator
             KeyPairGenerator keyPairGen;
+            AlgorithmParameterSpec spec;
+            if (namedCurve) {
+                spec = new ECGenParameterSpec(curveName);
+            } else {
+                spec = EC5Util.convertToSpec(ECNamedCurveTable.getByName(curveName));
+            }
 
             if (EdDSACurves.ED25519.jce().equals(curveName) || EdDSACurves.ED448.jce().equals(curveName)) {
                 keyPairGen = KeyPairGenerator.getInstance(curveName, BOUNCY_CASTLE.jce());
             } else if (provider != null) {
                 keyPairGen = KeyPairGenerator.getInstance(KeyPairType.EC.jce(), provider);
-                keyPairGen.initialize(new ECGenParameterSpec(curveName), SecureRandom.getInstance("SHA1PRNG"));
+                keyPairGen.initialize(spec, SecureRandom.getInstance("SHA1PRNG"));
             } else {
                 keyPairGen = KeyPairGenerator.getInstance(KeyPairType.EC.jce(), BOUNCY_CASTLE.jce());
-                keyPairGen.initialize(new ECGenParameterSpec(curveName), SecureRandom.getInstance("SHA1PRNG"));
+                keyPairGen.initialize(spec, SecureRandom.getInstance("SHA1PRNG"));
             }
 
             // Generate and return the key pair

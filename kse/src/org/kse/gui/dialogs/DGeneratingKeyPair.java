@@ -70,6 +70,7 @@ public class DGeneratingKeyPair extends JEscDialog {
     private KeyPairType keyPairType;
     private int keySize;
     private String curveName;
+    private boolean namedCurve;
     private KeyPair keyPair;
     private Thread generator;
 
@@ -96,12 +97,14 @@ public class DGeneratingKeyPair extends JEscDialog {
      * @param parent      The parent frame
      * @param keyPairType The key pair generation type
      * @param curveName   The name of the curve to create
+     * @param namedCurve  Whether to create a named curve or not.
      */
-    public DGeneratingKeyPair(JFrame parent, KeyPairType keyPairType, String curveName, Provider provider) {
+    public DGeneratingKeyPair(JFrame parent, KeyPairType keyPairType, String curveName, boolean namedCurve, Provider provider) {
         super(parent, Dialog.ModalityType.DOCUMENT_MODAL);
         this.keyPairType = keyPairType;
         this.curveName = curveName;
         this.provider = provider;
+        this.namedCurve = namedCurve;
         initComponents();
     }
 
@@ -204,7 +207,7 @@ public class DGeneratingKeyPair extends JEscDialog {
                 case ED25519:
                 case ED448:
                 default:
-                    keyPair = KeyPairUtil.generateECKeyPair(curveName, provider);
+                    keyPair = KeyPairUtil.generateECKeyPair(curveName, namedCurve, provider);
                     break;
                 }
 

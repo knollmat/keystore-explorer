@@ -108,6 +108,7 @@ public class GenerateKeyPairAction extends KeyStoreExplorerAction implements His
             int keyPairSizeDSA = applicationSettings.getGenerateKeyPairSizeDSA();
             String keyPairCurveSet = applicationSettings.getGenerateKeyPairCurveSet();
             String keyPairCurveName = applicationSettings.getGenerateKeyPairCurveName();
+            boolean namedCurve = true;
 
             KeyStore activeKeyStore = kseFrame.getActiveKeyStore();
             KeyStoreType activeKeyStoreType = KeyStoreType.resolveJce(activeKeyStore.getType());
@@ -116,7 +117,7 @@ public class GenerateKeyPairAction extends KeyStoreExplorerAction implements His
 
             DGenerateKeyPair dGenerateKeyPair = new DGenerateKeyPair(frame, activeKeyStoreType, keyPairType,
                                                                      keyPairSizeRSA, keyPairSizeDSA, keyPairCurveSet,
-                                                                     keyPairCurveName);
+                                                                     keyPairCurveName, namedCurve);
             dGenerateKeyPair.setLocationRelativeTo(frame);
             dGenerateKeyPair.setVisible(true);
 
@@ -130,13 +131,14 @@ public class GenerateKeyPairAction extends KeyStoreExplorerAction implements His
             keyPairSizeDSA = dGenerateKeyPair.getKeyPairSizeDSA();
             keyPairCurveSet = dGenerateKeyPair.getCurveSet();
             keyPairCurveName = dGenerateKeyPair.getCurveName();
+            namedCurve = dGenerateKeyPair.isNamedCurve();
             applicationSettings.setGenerateKeyPairType(keyPairType);
             applicationSettings.setGenerateKeyPairSizeRSA(keyPairSizeRSA);
             applicationSettings.setGenerateKeyPairSizeDSA(keyPairSizeDSA);
             applicationSettings.setGenerateKeyPairCurveSet(keyPairCurveSet);
             applicationSettings.setGenerateKeyPairCurveName(keyPairCurveName);
 
-            KeyPair keyPair = generateKeyPair(keyPairType, keyPairSizeRSA, keyPairSizeDSA, keyPairCurveName, provider);
+            KeyPair keyPair = generateKeyPair(keyPairType, keyPairSizeRSA, keyPairSizeDSA, keyPairCurveName, namedCurve, provider);
             if (keyPair == null) {
                 return "";
             }
@@ -230,7 +232,7 @@ public class GenerateKeyPairAction extends KeyStoreExplorerAction implements His
     }
 
     private KeyPair generateKeyPair(KeyPairType keyPairType, int keyPairSizeRSA, int keyPairSizeDSA, String curveName,
-                                    Provider provider) {
+                                    boolean namedCurve, Provider provider) {
         DGeneratingKeyPair dGeneratingKeyPair;
 
         switch (keyPairType) {
@@ -246,7 +248,7 @@ public class GenerateKeyPairAction extends KeyStoreExplorerAction implements His
         case ED25519:
         case ED448:
         default:
-            dGeneratingKeyPair = new DGeneratingKeyPair(frame, keyPairType, curveName, provider);
+            dGeneratingKeyPair = new DGeneratingKeyPair(frame, keyPairType, curveName, namedCurve, provider);
             break;
         }
 
